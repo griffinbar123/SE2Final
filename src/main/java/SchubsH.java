@@ -41,13 +41,24 @@ public class SchubsH
 {
     public static final String FILEPATH =  "";
 
-    public static void main(String[] args) throws java.io.IOException {
+    public static void main(String[] args) {
 
-        if (args.length == 0) {
-            throw new IOException("Wrong number of args");
+        if (args.length < 1) {
+           System.out.println("ERROR: 0 args provided. 1+ required. Ex: SchubsH [File1, File1...]");
+           return;
         }
 
-        for(int i = 0; i < args.length; i++){
+        try {
+            for(int i = 0; i < args.length; i++){
+                File in1 = new File(args[i]);
+                if( in1.exists() && in1.isDirectory()) {
+                    System.out.println("WARNING: Directory instead of file - "  + args[i]);
+                    continue;
+                }
+                if (!in1.exists()) {
+                    System.out.println("WARNING: File does not exist - " +  args[i]);
+                    continue;
+                }
                 String comp = args[i] + ".hh";
                 String uncomp = args[i];
                 
@@ -56,7 +67,12 @@ public class SchubsH
                 
                 Huffman huffman = new Huffman(out, in, false);
                 huffman.compress();
+            }
+        } catch (Exception e) {
+            System.out.println("You Messed Up!: " + e.getMessage());
         }
+
+
 
     }
 }

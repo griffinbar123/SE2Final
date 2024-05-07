@@ -43,9 +43,22 @@ public class Deschubs
 
     public static void main(String[] args) throws java.io.IOException {
 
-        if (args.length == 0) {
-            throw new IOException("Wrong number of args");
+        if (args.length < 1) {
+           System.out.println("ERROR: 0 args provided. 1+ required. Ex: Deschubs <ArchiveName> | [File1, File1...]");
+           return;
         }
+
+        // error if first file is directory or missing. if not, warn the user and try to uncompress other files
+        File in1 = new File(args[0]);
+        if( in1.exists() && in1.isDirectory()) {
+            System.out.println("ERROR: Directory instead of file - "  + args[0]);
+            return;
+        }
+        if (!in1.exists()) {
+            System.out.println("ERROR: File does not exist - " +  args[0]);
+            return;
+        }
+        
         
         String encodedType = args[0].substring(args[0].length()-3, args[0].length());
 
@@ -57,9 +70,22 @@ public class Deschubs
         }
 
         for(int i = 0; i < args.length; i++){
-            encodedType = args[i].substring(args[i].length()-3, args[i].length());
-            String comp = args[i];
-            String uncomp = args[i].substring(0, args[i].length()-3) + (encodedType.equals(".zl") ? ".tar" : "");
+
+            String arg = args[i];
+
+            in1 = new File(arg);
+            if( in1.exists() && in1.isDirectory()) { // do a warning if in loop bc we know other arguments could be correct
+                System.out.println("WARNING: Directory instead of file - "  + arg);
+                return;
+            }
+            if (!in1.exists()) {
+                System.out.println("WARNING: File does not exist - " +  arg);
+                return;
+            }
+
+            encodedType = arg.substring(args[i].length()-3, arg.length());
+            String comp = arg;
+            String uncomp = arg.substring(0, arg.length()-3) + (encodedType.equals(".zl") ? ".tar" : "");
             
             FileInputStream in = Utils.openInputFile(comp);
             FileOutputStream out = Utils.openOutputFile(uncomp);
@@ -67,9 +93,11 @@ public class Deschubs
             if(encodedType.equals(".ll")){
                 LZW lzw = new LZW(out, in, false);
                 lzw.expand();
+                Utils.deleteFile(arg); // clean up file we don't need
             } else if (encodedType.equals(".hh")) {
                 Huffman huffman = new Huffman(out, in, false);
                 huffman.expand();
+                Utils.deleteFile(arg); // clean up file we don't need
             }
         }
 

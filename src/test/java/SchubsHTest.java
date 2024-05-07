@@ -1,17 +1,39 @@
+/*  Program: FinalProject
+ *  Author : Griffin Barnard
+ *  Date   : Fall 2024 (25 April 2024)
+ *  Course : CS375 Software Engineering II
+ *  Compile: mvn compile
+ *  Execute: 
+ *      Compression (LZW): java -cp target/classes SchubsL src/files/test1.txt [file2 file3 ...] or
+ *                         java -cp target/classes SchubsL src/files/*.txt
+ *      Compression (Huf): java -cp target/classes SchubsH src/files/test1.txt [file2 file3 ...] or
+ *                         java -cp target/classes SchubsH src/files/*.txt
+ * 
+ *      Uncompression    : java -cp target/classes Deschubs src/files/test1.txt.(ll or hh) [file2 file3 ...] or
+ *                         java -cp target/classes Deschubs src/files/*.txt.(ll or hh) 
+ * 
+ *      Tars             : java -cp target/classes SchubsArc src/files/archive.tar src/files/test1.txt [file2 file3 ...] or
+ *                         java -cp target/classes SchubsArc src/files/archive.tar src/files/*.txt
+ * 
+ *      Untars           : java -cp target/classes Deschubs src/files/archive.zl
+ * 
+ *  Note   : This program handles compressing, uncompressing, tarsing, and untarsing files. 
+ *           it can take many files, compress them and then tars them
+ *  Needs  : try/catch part for missing files.
+ *           command line arguments differ based of commands being ran. see execute examples listed above
+ */
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.junit.Before;
+import org.junit.After;
 
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Random;
 import java.io.InputStream;
-
-//import org.apache.commons.io.IOUtils.*;
-// import LZWSE
 
 import java.io.IOException;
 
@@ -20,6 +42,20 @@ public class SchubsHTest {
 
    
     public static final String FILEPATH =  "src" + File.separator + "test" + File.separator + "resources" + File.separator + "schubsh" + File.separator;
+
+    private final ByteArrayOutputStream newOut = new ByteArrayOutputStream();
+    private final PrintStream originalOut = System.out;
+
+    @Before
+    public void setUpStreams() {
+        System.setOut(new PrintStream(newOut));
+    }
+
+    @After
+    public void restoreStreams() {
+        System.setOut(originalOut);
+    }
+
 
     public String generateRandomString(int hh, int rl, int length) {
         int leftLimit = hh; 
@@ -51,12 +87,13 @@ public class SchubsHTest {
 
     @Test 
     public void missingFile() throws IOException {
-        try {
-            SchubsH.main(new String[] { FILEPATH +  "missing" });
-        } catch (Exception e) {
-            // check that this errors for the right reson (No such file or directory)
-            assertEquals("File content is missing", e.getMessage().substring(e.getMessage().length()-27, e.getMessage().length()), "(No such file or directory)");
-        }
+        SchubsH.main(new String[] { FILEPATH + "missing1"});
+        
+        // extra character at end, delete it.
+        String outs = newOut.toString();
+        outs = outs.substring(0, outs.length() - 1);
+
+        assertEquals("File content is missing", outs, "WARNING: File does not exist - " + FILEPATH+"missing1");
     }
 
     @Test
@@ -148,11 +185,24 @@ public class SchubsHTest {
 
     @Test
     public void wrongNumberOfArgs() throws IOException {
-        try {
-            SchubsH.main(new String[] { });
-        } catch (Exception e) {
-            // check that this errors for the right reson (file is empty)
-            assertEquals("Wrong number of args", e.getMessage(), "Wrong number of args");
-        }
+        SchubsH.main(new String[] { });
+
+        // extra character at end, delete it.
+        String outs = newOut.toString();
+        outs = outs.substring(0, outs.length() - 1);
+
+        assertEquals("Wrong number of args", outs, "ERROR: 0 args provided. 1+ required. Ex: SchubsH [File1, File1...]");
+    }
+
+    @Test
+    public void dirInsteadOfFile() throws IOException {
+        File f = new File(FILEPATH + "directory-instead-of-file" ); 
+        f.mkdir();
+        SchubsH.main(new String[] { FILEPATH + "directory-instead-of-file" });
+        // extra character at end, delete it.
+        String outs = newOut.toString();
+        outs = outs.substring(0, outs.length() - 1);
+
+        assertEquals("Directory instead of file", outs, "WARNING: Directory instead of file - " + FILEPATH+"directory-instead-of-file");
     }
 }

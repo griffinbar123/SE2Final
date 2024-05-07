@@ -24,9 +24,12 @@
  */
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.junit.Before;
+import org.junit.After;
 
 
 import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Random;
@@ -42,6 +45,19 @@ import java.io.IOException;
 public class SchubsArcTest {
 
     public static final String FILEPATH =  "src" + File.separator + "test" + File.separator + "resources" + File.separator + "schubsarc" + File.separator;
+
+    private final ByteArrayOutputStream newOut = new ByteArrayOutputStream();
+    private final PrintStream originalOut = System.out;
+
+    @Before
+    public void setUpStreams() {
+        System.setOut(new PrintStream(newOut));
+    }
+
+    @After
+    public void restoreStreams() {
+        System.setOut(originalOut);
+    }
 
     public String generateRandomString(int ll, int rl, int length) {
         int leftLimit = ll; 
@@ -103,12 +119,13 @@ public class SchubsArcTest {
 
     @Test 
     public void missingFile() throws IOException {
-        try {
-            SchubsArc.main(new String[] { FILEPATH + "missing", FILEPATH +  "missing"});
-        } catch (Exception e) {
-            // check that this errors for the right reson (No such file or directory)
-            assertEquals("File content is missing", e.getMessage().substring(e.getMessage().length()-27, e.getMessage().length()), "(No such file or directory)");
-        }
+        SchubsArc.main(new String[] { FILEPATH + "missing", FILEPATH + "missing1"});
+        
+        // extra character at end, delete it.
+        String outs = newOut.toString();
+        outs = outs.substring(0, outs.length() - 1);
+
+        assertEquals("File content is missing", outs, "WARNING: File does not exist - " + FILEPATH+"missing1");
     }
 
     @Test
@@ -225,21 +242,24 @@ public class SchubsArcTest {
 
     @Test
     public void wrongNumberOfArgs() throws IOException {
-        try {
-            SchubsArc.main(new String[] { });
-        } catch (Exception e) {
-            // check that this errors for the right reson (file is empty)
-            assertEquals("Wrong number of args", e.getMessage(), "Wrong number of args");
-        }
+        SchubsArc.main(new String[] { });
+         // extra character at end, delete it.
+        String outs = newOut.toString();
+        outs = outs.substring(0, outs.length() - 1);
+
+        assertEquals("Wrong number of args", outs, "ERROR: 0 args provided. 2+ required. Ex: SchubsArc <ArchiveName> [File1, File1...]");
+        
     }
 
     @Test
     public void dirInsteadOfFile() throws IOException {
-        try {
-            SchubsArc.main(new String[] {FILEPATH + "normal-tars.zl", FILEPATH + "directory-instead-of-file"});
-        } catch (Exception e) {
-            // check that this errors for the right reson (file is empty)
-            assertEquals("File is a directory", e.getMessage(), "File to be compressed is a directory");
-        }
+        File f = new File(FILEPATH + "directory-instead-of-file" ); 
+        f.mkdir();
+        SchubsArc.main(new String[] { FILEPATH + "normal-tars.tar", FILEPATH + "directory-instead-of-file" });
+        // extra character at end, delete it.
+        String outs = newOut.toString();
+        outs = outs.substring(0, outs.length() - 1);
+
+        assertEquals("Directory instead of file", outs, "WARNING: Directory instead of file - " + FILEPATH+"directory-instead-of-file");
     }
 }

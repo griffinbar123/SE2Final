@@ -29,6 +29,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Files;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,9 +43,9 @@ import java.util.List;
 
 public class Untars 
 {
-    public static String[] main(String[] args) throws IOException {
-        BinaryIn in = null;
-        BinaryOut out = null;
+    public static String[] main(String[] args) {
+        Bin in = null;
+        Bout out = null;
         
         char sep =  (char) 255;  // all ones 11111111
     
@@ -51,18 +53,18 @@ public class Untars
         // int lengthoffilename, sep, filename, sep, lengthoffile, sep, bits
 
         if(args.length > 1) {
-            System.out.println("WARNING: too many args. 1 required args");
+            System.out.println("WARNING: " + args.length + " args provided. 1 required args. Ex: Untars <ArchiveName>");
+        }
+
+        if(args.length < 1) {
+            System.out.println("ERROR: 0 args provided. 1 required args. Ex: Untars <ArchiveName>");
+            return new String[]{""};
         }
         
         List<String> filenames = new ArrayList<String>();
 
         try {
-            File f = new File(args[0]);
-            if( f.exists() && f.isDirectory()) {
-                throw new IOException("File to be untarsed is a directory");
-            }
-            
-            in = new BinaryIn( args[0] );
+            in = new Bin( args[0] );
             
             while(true){
                 int filenamesize;
@@ -84,7 +86,12 @@ public class Untars
                 long filesize = in.readLong();
                 sep = in.readChar();
                 System.out.println("Extracting file: " + filename + " ("+ filesize +").");
-                out = new BinaryOut( filename );
+                try {
+                    Files.createDirectories(Path.of(filename).getParent());
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+                out = new Bout( filename );
                 for (int i=0; i<filesize; i++)
                   // copy input to output
                   out.write(in.readChar());

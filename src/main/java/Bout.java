@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 
-public final class BinaryOut {
+public final class Bout {
 
     private BufferedOutputStream out;  
     private int buffer;          
@@ -37,15 +37,15 @@ public final class BinaryOut {
 
 
    
-    public BinaryOut(OutputStream os) {
+    public Bout(OutputStream os) {
         out = new BufferedOutputStream(os);
     }
 
-    public BinaryOut() {
+    public Bout() {
         this(System.out);
     }
 
-    public BinaryOut(String s) {
+    public Bout(String s) {
         try {
             OutputStream os = new FileOutputStream(s);
             out = new BufferedOutputStream(os);

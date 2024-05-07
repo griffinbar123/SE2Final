@@ -32,19 +32,22 @@ public class LZW {
     private static final int L = 256;       // number of codewords = 2^W
     private static final int W = 8;         // codeword width
 
-    public BinaryOut binaryStdOut;
-    public BinaryIn binaryStdIn;
+    public Bout
+     binaryStdOut;
+    public Bin binaryStdIn;
     public boolean log;
 
     public LZW(OutputStream outs, InputStream ins, boolean l) {
-        binaryStdIn = new BinaryIn(ins);
-        binaryStdOut = new BinaryOut(outs);
+        binaryStdIn = new Bin(ins);
+        binaryStdOut = new Bout
+        (outs);
         log = l;
     }
 
-    public LZW(OutputStream outs, BinaryIn ins, boolean l) {
+    public LZW(OutputStream outs, Bin ins, boolean l) {
         binaryStdIn = ins;
-        binaryStdOut = new BinaryOut(outs);
+        binaryStdOut = new Bout
+        (outs);
         log = l;
     }
 

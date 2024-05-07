@@ -28,20 +28,18 @@ import java.io.OutputStream;
 
 public class Huffman {
 
-    // alphabet size of extended ASCII
     private  final int R = 256;
 
-    public BinaryOut binaryStdOut;
-    public BinaryIn binaryStdIn;
+    public Bout binaryStdOut;
+    public Bin binaryStdIn;
     public boolean log;
 
     public Huffman(OutputStream outs, InputStream ins, boolean l) {
-        binaryStdIn = new BinaryIn(ins);
-        binaryStdOut = new BinaryOut(outs);
+        binaryStdIn = new Bin(ins);
+        binaryStdOut = new Bout(outs);
         log = l;
     }
 
-    // Huffman trie node
     private  class Node implements Comparable<Node> {
         private final char ch;
         private final int freq;
@@ -54,44 +52,34 @@ public class Huffman {
             this.right = right;
         }
 
-        // is the node a leaf node?
         private boolean isLeaf() {
             assert (left == null && right == null) || (left != null && right != null);
             return (left == null && right == null);
         }
 
-        // compare, based on frequency
         public int compareTo(Node that) {
             return this.freq - that.freq;
         }
     }
 
 
-    // compress bytes from standard input and write to standard output
     public  void compress() {
-        // read the input
         String s = binaryStdIn.readString();
         char[] input = s.toCharArray();
 
-        // tabulate frequency counts
         int[] freq = new int[R];
         for (int i = 0; i < input.length; i++)
             freq[input[i]]++;
 
-        // build Huffman trie
         Node root = buildTrie(freq);
 
-        // build code table
         String[] st = new String[R];
         buildCode(st, root, "");
 
-        // print trie for decoder
         writeTrie(root);
 
-        // print number of bytes in original uncompressed message
         binaryStdOut.write(input.length);
 
-        // use Huffman code to encode input
         for (int i = 0; i < input.length; i++) {
             String code = st[input[i]];
             for (int j = 0; j < code.length(); j++) {
@@ -105,20 +93,16 @@ public class Huffman {
             }
         }
 
-        // flush output stream
         binaryStdOut.flush();
     }
 
-    // build the Huffman trie given frequencies
     private  Node buildTrie(int[] freq) {
 
-        // initialze priority queue with singleton trees
         MinPQ<Node> pq = new MinPQ<Node>();
         for (char i = 0; i < R; i++)
             if (freq[i] > 0)
                 pq.insert(new Node(i, freq[i], null, null));
 
-        // merge two smallest trees
         while (pq.size() > 1) {
             Node left  = pq.delMin();
             Node right = pq.delMin();
@@ -129,7 +113,6 @@ public class Huffman {
     }
 
 
-    // write bitstring-encoded trie to standard output
     private  void writeTrie(Node x) {
         if (x.isLeaf()) {
             binaryStdOut.write(true);
@@ -141,7 +124,6 @@ public class Huffman {
         writeTrie(x.right);
     }
 
-    // make a lookup table from symbols and their encodings
     private  void buildCode(String[] st, Node x, String s) {
         if (!x.isLeaf()) {
             buildCode(st, x.left,  s + '0');
@@ -153,16 +135,12 @@ public class Huffman {
     }
 
 
-    // expand Huffman-encoded input from standard input and write to standard output
     public  void expand() {
 
-        // read in Huffman trie from input stream
         Node root = readTrie(); 
 
-        // number of bytes to write
         int length = binaryStdIn.readInt();
 
-        // decode using the Huffman trie
         for (int i = 0; i < length; i++) {
             Node x = root;
             while (!x.isLeaf()) {

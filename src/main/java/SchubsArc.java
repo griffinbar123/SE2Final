@@ -41,32 +41,41 @@ public class SchubsArc
 {
     public static final String FILEPATH =  "";
 
-    public static void main(String[] args) throws java.io.IOException {
+    public static void main(String[] args) {
 
         // create the ll files and then tars them
-
-        if (args.length <= 1) {
-            throw new IOException("Wrong number of args");
-        }
-
-
-        String[] schubsLArgs = Arrays.copyOfRange(args, 1, args.length);
-        SchubsL.main(schubsLArgs);
-        for(int i = 0; i < args.length; i++){
-            if(i == 0){
-                String ext = args[i].substring(args[i].length()-3, args[i].length());
-                if(ext.equals(".zl"))
-                    continue;
-                else if(ext.equals(".zh"))
-                    args[0] = args[0].substring(0, args[0].length() - 3) + ".zl";
-                else
-                    args[0] = args[0].substring(0, args[0].length() - (args[0].substring(args[0].length()-4, args[0].length()).equals(".tar") ? 4 : 0)) + ".zl";
-                continue;
+        try {
+            if (args.length <= 1) {
+                System.out.println("ERROR: " + args.length + " args provided. 2+ required. Ex: SchubsArc <ArchiveName> [File1, File1...]");
+                return;
             }
-            args[i] = args[i] + ".ll";
+
+            String[] schubsLArgs = Arrays.copyOfRange(args, 1, args.length);
+            SchubsL.main(schubsLArgs);
+            for(int i = 0; i < args.length; i++){
+                if(i == 0){                    
+                    String ext = args[i].substring(args[i].length()-3, args[i].length());
+                    if(ext.equals(".zl"))
+                        continue;
+                    else if(ext.equals(".zh"))
+                        args[0] = args[0].substring(0, args[0].length() - 3) + ".zl";
+                    else
+                        args[0] = args[0].substring(0, args[0].length() - (args[0].substring(args[0].length()-4, args[0].length()).equals(".tar") ? 4 : 0)) + ".zl";
+                    continue;
+                }
+                args[i] = args[i] + ".ll";
+            }
+
+            Tarsn.main(args);
+
+            for(int i = 1; i < args.length; i++){
+                Utils.deleteFile(args[i]);
+            }
+            
+        } catch (Exception e) {
+            System.out.println("You Messed Up!: " + e.getMessage());
         }
 
-        Tarsn.main(args);
 
     }
 }

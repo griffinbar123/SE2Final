@@ -24,22 +24,37 @@
  */
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.junit.Before;
+import org.junit.After;
 
 
 import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Random;
 import java.io.InputStream;
-
-
 import java.io.IOException;
+
 
 
 public class UntarsTest {
 
     public static final String FILEPATH =  "src" + File.separator + "test" + File.separator + "resources" + File.separator + "untars" + File.separator;
-    String tars_file = FILEPATH + "testing.tar";
+    
+    private final ByteArrayOutputStream newOut = new ByteArrayOutputStream();
+    private final PrintStream originalOut = System.out;
+
+    @Before
+    public void setUpStreams() {
+        System.setOut(new PrintStream(newOut));
+    }
+
+    @After
+    public void restoreStreams() {
+        System.setOut(originalOut);
+    }
+
 
     public String generateRandomString(int ll, int rl, int length) {
         int leftLimit = ll; 
@@ -92,16 +107,6 @@ public class UntarsTest {
         } catch (Exception e) {
             // check that this erros for the right reson (file is empty)
             assertEquals("File content is empty", e.getMessage(), "Reading from empty input stream");
-        }
-    }
-
-    @Test 
-    public void missingFile() throws IOException {
-        try {
-            Untars.main(new String[] { "missing"});
-        } catch (Exception e) {
-            // check that this errors for the right reson (No such file or directory)
-            assertEquals("File content is missing", e.getMessage().substring(e.getMessage().length()-27, e.getMessage().length()), "(No such file or directory)");
         }
     }
 
@@ -181,7 +186,10 @@ public class UntarsTest {
     }
 
     @Test
-    public void wrongNumberOfArgs() throws IOException {
+    public void tooManyArgs() throws IOException {
+
+        // should run like normal if too many args, but still warn user
+
         // generate random string to write to files
         String file1_string = generateRandomString(97, 122, 10000);
         String file2_string = generateRandomString(97, 122, 10000);
@@ -201,21 +209,34 @@ public class UntarsTest {
         Utils.deleteFile(FILEPATH + "wrong-number-args-test3.txt");
 
         //uncompress tars files
-        Untars.main(new String[] { FILEPATH + "wrong-number-args-tars.tar", "random arg" });
+        Untars.main(new String[] { FILEPATH + "wrong-number-args-tars.tar", FILEPATH + "random arg" });
 
 
         assertEquals("Checking uncompressed tars files' content to the original strings", file1_string, new String(Utils.getBytes(FILEPATH + "wrong-number-args-test1.txt")));
         assertEquals("Checking uncompressed tars files' content to the original strings", file2_string, new String(Utils.getBytes(FILEPATH + "wrong-number-args-test2.txt")));
         assertEquals("Checking uncompressed tars files' content to the original strings", file3_string, new String(Utils.getBytes(FILEPATH + "wrong-number-args-test3.txt")));
+
+        // extra character at end, delete it.
+        String outs = newOut.toString();
+        outs = outs.substring(0, outs.length() - 1);
+
+        assertEquals("Wrong number of args", outs.substring(0, "WARNING: 2 args provided. 1 required args. Ex: Untars <ArchiveName>".length()), "WARNING: 2 args provided. 1 required args. Ex: Untars <ArchiveName>");
     }
 
     @Test
-    public void dirInsteadOfTars() throws IOException {
-        try {
-            Untars.main(new String[] {FILEPATH + "normal-tars.tar"});
-        } catch (Exception e) {
-            // check that this errors for the right reson (file is empty)
-            assertEquals("File is a directory", e.getMessage(), "File to be untarsed is a directory");
-        }
+    public void zeroArgs() throws IOException {
+
+        // 0 arguments, program shouldn't run past ingorming user of incorrect usage
+        Untars.main( new String[]{});
+
+        // extra character at end, delete it.
+        String outs = newOut.toString();
+        outs = outs.substring(0, outs.length() - 1);
+
+        assertEquals("Wrong number of args", outs, "ERROR: 0 args provided. 1 required args. Ex: Untars <ArchiveName>");
     }
+
+
+
+    
 }

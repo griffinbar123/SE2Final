@@ -29,27 +29,31 @@ import java.nio.charset.StandardCharsets;
 
 public class Tarsn
 {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         File in = null;
-        BinaryIn bin1 = null;
-        BinaryOut out = null;
+        Bin bin1 = null;
+        Bout out = null;
         
         char separator =  (char) 255;  // all ones 11111111
 
         if (args.length <= 1) {
-            throw new IOException("Wrong number of args");
+            System.out.println("ERROR: " + args.length + " args provided. 2+ required. Ex: Tarsn <ArchiveName> [File1, File1...]");
+            return;
         }
-        out = new BinaryOut(args[0]);
 
+
+        out = new Bout(args[0]);
 
         for(int i = 1; i < args.length; i++){
             try { 
                 //loop through args and compress them
                 in = new File(args[i]);
-                if( in.exists() && in.isDirectory()) {
-                    throw new IOException("File to be tarsed is a directory");
+                if (!in.exists() || in.isDirectory()) {
+
+                // dont need to print warning in tars and untars for missing files and dirs instead of files bc they are never called by user
+                // Because of this, other programs that call these helper classes will already handle those cases.
+                    continue;
                 }
-                if (!in.exists() || !in.isFile()) return;
         
                 long filesize = in.length();
                 int filenamesize = args[i].length();

@@ -32,33 +32,33 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public final class BinaryIn {
+public final class Bin {
     private static final int EOF = -1;   
 
     private BufferedInputStream in;      
-    private int buffer;                  
+    private int buff;                  
     private int N;                       
 
 
-    public BinaryIn() {
+    public Bin() {
         in = new BufferedInputStream(System.in);
-        fillBuffer();
+        fullBuff();
     }
 
-    public BinaryIn(InputStream is) {
+    public Bin(InputStream is) {
         in = new BufferedInputStream(is);
-        fillBuffer();
+        fullBuff();
     }
 
 
-    public BinaryIn(String s) {
+    public Bin(String s) {
 
         try {
             File file = new File(s);
             if (file.exists()) {
                 FileInputStream fis = new FileInputStream(file);
                 in = new BufferedInputStream(fis);
-                fillBuffer();
+                fullBuff();
                 return;
             }
         }
@@ -67,9 +67,9 @@ public final class BinaryIn {
         }
     }
 
-    private void fillBuffer() {
-        try { buffer = in.read(); N = 8; }
-        catch (IOException e) { System.err.println("EOF"); buffer = EOF; N = -1; }
+    private void fullBuff() {
+        try { buff = in.read(); N = 8; }
+        catch (IOException e) { System.err.println("EOF"); buff = EOF; N = -1; }
     }
 
     public boolean exists()  {
@@ -77,15 +77,15 @@ public final class BinaryIn {
     }
 
    public boolean isEmpty() {
-        return buffer == EOF;
+        return buff == EOF;
     }
 
 
     public boolean readBoolean() {
         if (isEmpty()) throw new RuntimeException("Reading from empty input stream");
         N--;
-        boolean bit = ((buffer >> N) & 1) == 1;
-        if (N == 0) fillBuffer();
+        boolean bit = ((buff >> N) & 1) == 1;
+        if (N == 0) fullBuff();
         return bit;
     }
     
@@ -93,18 +93,18 @@ public final class BinaryIn {
         if (isEmpty()) throw new RuntimeException("Reading from empty input stream");
 
         if (N == 8) {
-            int x = buffer;
-            fillBuffer();
+            int x = buff;
+            fullBuff();
             return (char) (x & 0xff);
         }
 
-        int x = buffer;
+        int x = buff;
         x <<= (8-N);
         int oldN = N;
-        fillBuffer();
+        fullBuff();
         if (isEmpty()) throw new RuntimeException("Reading from empty input stream");
         N = oldN;
-        x |= (buffer >>> N);
+        x |= (buff >>> N);
         return (char) (x & 0xff);
     }
 
@@ -164,7 +164,7 @@ public final class BinaryIn {
             x |= c;
         }
         return x;
-    }
+    } 
 
     public byte readByte() {
         char c = readChar();
